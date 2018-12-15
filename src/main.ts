@@ -82,10 +82,9 @@ window.onload = () => {
             playFieldState[currentPieceRow][currentPieceCol] = true            
         }
         else{
-
             let afterRowsCleared = playFieldState.filter(row => row.findIndex(x => x == false) != -1)
             let removedRows = playFieldSize.height - afterRowsCleared.length
-            if(removedRows > 0){     
+            if(removedRows > 0){                  
                 let blankRows = []           
                 for(let row = 0; row < removedRows; row++){
                     blankRows[row] = []
