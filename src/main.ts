@@ -69,7 +69,7 @@ window.onload = () => {
     let currentPieceCol = 4
     let currentPieceRow = -1    
 
-    function move(){        
+    function moveDown(){        
         //can move?        
         if(currentPieceRow != playFieldSize.height - 1 //not at the bottom
             && !playFieldState[currentPieceRow + 1][currentPieceCol]){
@@ -99,6 +99,18 @@ window.onload = () => {
             currentPieceCol = 4
             currentPieceRow = -1           
         }
+    }    
+
+    function moveSide(side: 'left' | 'right'){
+        let sideCol = side == 'left' 
+            ? Math.max(0, currentPieceCol - 1)
+            : Math.min(playFieldSize.width - 1, currentPieceCol + 1)
+            
+        if(!playFieldState[currentPieceRow][sideCol]){
+            playFieldState[currentPieceRow][currentPieceCol] = false
+            currentPieceCol = sideCol
+            playFieldState[currentPieceRow][currentPieceCol] = true 
+        }
     }
 
     render()
@@ -109,18 +121,14 @@ window.onload = () => {
         () => {
             if(currentKey && currentPieceRow != -1){
                 if(currentKey == "left"){
-                    playFieldState[currentPieceRow][currentPieceCol] = false
-                    currentPieceCol = Math.max(0, currentPieceCol - 1)
-                    playFieldState[currentPieceRow][currentPieceCol] = true 
+                    moveSide("left")
                 }
                 if(currentKey == "right"){
-                    playFieldState[currentPieceRow][currentPieceCol] = false
-                    currentPieceCol = Math.min(9, currentPieceCol + 1)
-                    playFieldState[currentPieceRow][currentPieceCol] = true 
+                    moveSide('right')
                 }
             }
             if(ticksCounter % 10 == 0 || currentKey == 'down'){
-                move()
+                moveDown()
             }
             ticksCounter++
 
