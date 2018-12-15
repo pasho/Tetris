@@ -65,8 +65,10 @@ window.onload = () => {
         currentKey = undefined
     }
 
-    let currentPieceCol = playFieldSize.width / 2  - 1
-    let currentPieceRow = -1        
+    let currentPiece = [true, true]
+    let currentPieceWidth = currentPiece.length
+    let currentPieceCol = Math.floor((playFieldSize.width - currentPieceWidth) / 2)    
+    let currentPieceRow = -1            
 
     function moveDown(){        
         //can move?        
@@ -74,11 +76,15 @@ window.onload = () => {
             && !playFieldState[currentPieceRow + 1][currentPieceCol]){
             //is visible?
             if(currentPieceRow >= 0){
-                playFieldState[currentPieceRow][currentPieceCol] = false
+                for(let colOffset = 0; colOffset < currentPieceWidth; colOffset++){
+                    playFieldState[currentPieceRow][currentPieceCol + colOffset] = false
+                }
             }
 
             currentPieceRow++
-            playFieldState[currentPieceRow][currentPieceCol] = true            
+            for(let colOffset = 0; colOffset < currentPieceWidth; colOffset++){                
+                playFieldState[currentPieceRow][currentPieceCol + colOffset] = true        
+            }    
         }
         else{
             let afterRowsCleared = playFieldState.filter(row => row.findIndex(x => x == false) != -1)
@@ -94,7 +100,7 @@ window.onload = () => {
                 playFieldState = blankRows.concat(afterRowsCleared)
             }
 
-            currentPieceCol = playFieldSize.width / 2  - 1
+            currentPieceCol = Math.floor(playFieldSize.width - currentPieceWidth) / 2
             currentPieceRow = -1           
         }
     }    
