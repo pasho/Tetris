@@ -111,7 +111,7 @@ window.onload = () => {
     function moveDown(){        
         //can move?       
         let notBottom = currentPieceRow != playFieldSize.height - 1        
-        let nothingBelow = notBottom && !currentPiece
+        let nothingBelow = notBottom && !currentPiece[currentPiece.length - 1]            
             .map((_, offset) => playFieldState[currentPieceRow + 1][currentPieceCol + offset])
             .reduce((a, b) => a || b)
 
