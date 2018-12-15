@@ -14,8 +14,7 @@ window.onload = () => {
     for(let row = 0; row < playFieldSize.height; row++){
         playFieldState[row] = []
         for(let col = 0; col < playFieldSize.width; col++){
-            playFieldState[row][col] = false
-            //playFieldState[row][col] = row % 2 == 0 && col % 2 == 0
+            playFieldState[row][col] = false            
         }
     }
 
