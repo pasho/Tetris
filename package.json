@@ -4,8 +4,17 @@
   "description": "",
   "main": "main.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build-dev": "webpack",
+    "build-prod": "webpack -p",
+    "watch": "webpack -w"
   },
   "private": true,
-  "author": ""  
+  "author": "",
+  "devDependencies": {
+    "ts-loader": "^5.3.1",
+    "typescript": "^3.2.2",
+    "webpack": "^4.27.1",
+    "webpack-cli": "^3.1.2"
+  }
 }
