@@ -65,8 +65,8 @@ window.onload = () => {
         currentKey = undefined
     }
 
-    let currentPieceCol = 4
-    let currentPieceRow = -1    
+    let currentPieceCol = playFieldSize.width / 2  - 1
+    let currentPieceRow = -1        
 
     function moveDown(){        
         //can move?        
@@ -94,7 +94,7 @@ window.onload = () => {
                 playFieldState = blankRows.concat(afterRowsCleared)
             }
 
-            currentPieceCol = 4
+            currentPieceCol = playFieldSize.width / 2  - 1
             currentPieceRow = -1           
         }
     }    
