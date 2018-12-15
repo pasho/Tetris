@@ -71,9 +71,13 @@ window.onload = () => {
     let currentPieceRow = -1            
 
     function moveDown(){        
-        //can move?        
-        if(currentPieceRow != playFieldSize.height - 1 //not at the bottom
-            && !playFieldState[currentPieceRow + 1][currentPieceCol]){
+        //can move?       
+        let notBottom = currentPieceRow != playFieldSize.height - 1        
+        let nothingBelow = notBottom && !currentPiece
+            .map((_, offset) => playFieldState[currentPieceRow + 1][currentPieceCol + offset])
+            .reduce((a, b) => a || b)
+
+        if(notBottom && nothingBelow){
             //is visible?
             if(currentPieceRow >= 0){
                 for(let colOffset = 0; colOffset < currentPieceWidth; colOffset++){
@@ -108,12 +112,16 @@ window.onload = () => {
     function moveSide(side: 'left' | 'right'){
         let sideCol = side == 'left' 
             ? Math.max(0, currentPieceCol - 1)
-            : Math.min(playFieldSize.width - 1, currentPieceCol + 1)
+            : Math.min(playFieldSize.width - 1, currentPieceCol + currentPieceWidth)
             
-        if(!playFieldState[currentPieceRow][sideCol]){
-            playFieldState[currentPieceRow][currentPieceCol] = false
-            currentPieceCol = sideCol
-            playFieldState[currentPieceRow][currentPieceCol] = true 
+        if(!playFieldState[currentPieceRow][sideCol]){            
+            for(let colOffset = 0; colOffset < currentPieceWidth; colOffset++){
+                playFieldState[currentPieceRow][currentPieceCol + colOffset] = false
+            }
+            currentPieceCol = sideCol            
+            for(let colOffset = 0; colOffset < currentPieceWidth; colOffset++){                
+                playFieldState[currentPieceRow][currentPieceCol + colOffset] = true        
+            }
         }
     }
 
