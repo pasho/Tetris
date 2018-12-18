@@ -65,13 +65,15 @@ window.onload = () => {
         currentKey = undefined
     }
 
-    const pieces = [
+    type Piece = [number, number][]
+
+    const pieces: Piece[] = [
         [
-            [true, true]
+            [0, 0], [1, 0]
         ],
         [
-            [true],
-            [true]
+            [0, 0], 
+            [0, 1]
         ]
     ]
 
