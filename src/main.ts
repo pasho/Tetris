@@ -1,20 +1,22 @@
-import * as _ from 'lodash'
+//import * as _ from 'lodash'
 
 const blockSize = 25
 const playFieldSize = { height: 22, width: 10 }
 
-type Position = [number, number]
-type Piece = Position[]
+type Row = number
+type Col = number
+type Pos = [Row, Col]
+type Piece = Pos[]
 
 type Direction = 'left' | 'right' | 'down'
 
 const pieces: Piece[] = [
     [
-        [0, 0], [1, 0]
+        [0, 0], [0, 1]
     ],
     [
         [0, 0],
-        [0, 1]
+        [1, 0]
     ]
 ]
 
@@ -22,7 +24,7 @@ interface State {
     playField: boolean[][]
     currentKey?: 'left' | 'right' | 'up' | 'down'
     currentPiece: Piece
-    currentPiecePosition: Position
+    currentPiecePosition: Pos
     ticksCounter: number
 }
 
@@ -46,16 +48,21 @@ class Game {
     }
 
     private initPlayField(){
-        return {
-            playField: _.range(0, playFieldSize.height)
-                    .map(r => _.range(0, playFieldSize.width).map(c => false))
+        let playField: boolean[][] = []
+        for(let row = 0; row < playFieldSize.height; row++){
+            playField[row] = []
+            for(let col = 0; col < playFieldSize.width; col++){
+                playField[row][col] = false;
+            }
         }
+
+        return { playField }
     }
 
     private initPiece() {
         return {
             currentPiece: this.getNextPiece(),
-            currentPiecePosition: [4, -1] as Position,
+            currentPiecePosition: [-1, 4] as Pos,
         }
     }
 
@@ -138,63 +145,66 @@ class Game {
     }
 
     private clearPiece() {
-        let [currentX, currentY] = this.state.currentPiecePosition
+        let [currentRow, currentCol] = this.state.currentPiecePosition
 
         this.state.currentPiece
-            .forEach(([blockX, blockY]) => {
-                let blockPlayFieldX = blockX + currentX
-                let blockPlayFieldY = blockY + currentY
-                this.state.playField[blockPlayFieldX][blockPlayFieldY] = false
+            .forEach(([blockRow, blockCol]) => {
+                let blockPlayFieldRow = blockRow + currentRow
+                let blockPlayFieldCol = blockCol + currentCol
+                if(blockPlayFieldRow >= 0){
+                    this.state.playField[blockPlayFieldRow][blockPlayFieldCol] = false
+                }
             })
     }
 
     private putPiece() {
-        let [currentX, currentY] = this.state.currentPiecePosition
+        let [currentRow, currentCol] = this.state.currentPiecePosition
 
         this.state.currentPiece
-            .forEach(([blockX, blockY]) => {
-                let blockPlayFieldX = blockX + currentX
-                let blockPlayFieldY = blockY + currentY
-                if (blockPlayFieldY >= 0) {
-                    this.state.playField[blockPlayFieldX][blockPlayFieldY] = true
+            .forEach(([blockRow, blockCol]) => {
+                let blockPlayFieldRow = blockRow + currentRow
+                let blockPlayFieldCol = blockCol + currentCol
+                if (blockPlayFieldRow >= 0) {
+                    this.state.playField[blockPlayFieldRow][blockPlayFieldCol] = true
                 }
             })
     }
 
     private canMove(direction: Direction) {
-        let [currentX, currentY] = this.state.currentPiecePosition
+        let [currentRow, currentCol] = this.state.currentPiecePosition
 
         let currentPositions = this.state.currentPiece
-            .map(([blockX, blockY]): Position => [blockX + currentX, blockY + currentY])
+            .map(([blockRow, blockCol]): Pos => [blockRow + currentRow, blockCol + currentCol])
 
         let movedPositions = currentPositions
             .map(position => this.getMovedPosition(position, direction))
 
         let newPositionsOnly = movedPositions
-            .filter(([movedX, movedY]) => {
+            .filter(([movedRow, movedCol]) => {
                 let doesntOverlapsWithCurrent = currentPositions
                     .find(
-                        ([currentX, currentY]) =>
-                            currentX == movedX && currentY == movedY
+                        ([currentRow, currentCol]) =>
+                            currentRow == movedRow && currentCol == movedCol
                     ) === undefined
 
                 return doesntOverlapsWithCurrent
             })
 
         let isOutOfBounds = newPositionsOnly.find(
-            ([x, y]) =>
-                x < 0 // too much left
-                || x >= playFieldSize.width // too much right
-                || y >= playFieldSize.height // through the bottom
+            ([row, col]) =>
+                col < 0 // too much left
+                || col >= playFieldSize.width // too much right
+                || row >= playFieldSize.height // through the bottom
         ) !== undefined
 
         if (isOutOfBounds) {
+            console.log('out of bounds')
             return false
         }
 
         let isOverlapping = newPositionsOnly
             .find(
-                ([x, y]) => this.state.playField[x][y]
+                ([row, col]) => this.state.playField[row][col]
             ) !== undefined
 
         if (isOverlapping) {
@@ -204,14 +214,14 @@ class Game {
         return true
     }
 
-    private getMovedPosition([x, y]: Position, direction: Direction): Position {
+    private getMovedPosition([row, col]: Pos, direction: Direction): Pos {
         switch (direction) {
             case 'left':
-                return [x - 1, y]
+                return [row, col - 1]
             case 'right':
-                return [x + 1, y]
+                return [row, col + 1]
             case 'down':
-                return [x, y + 1]
+                return [row + 1, col]
         }
     }
 
@@ -234,7 +244,7 @@ class Game {
 
     private tryClearRows(){
         let playFieldAfterFilledRowsRemoved = this.state.playField
-            .filter(row => row.findIndex(x => x == false) != -1)
+            .filter(row => row.findIndex(filled => filled == false) != -1)
 
         let removedRowsCount = playFieldSize.height - playFieldAfterFilledRowsRemoved.length
         if (removedRowsCount > 0) {
