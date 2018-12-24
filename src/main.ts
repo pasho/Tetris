@@ -60,6 +60,7 @@ class Game {
     }
 
     public start() {
+        console.log('start')
         //subscribe to keys
         window.onkeydown = (e) => {
             if (e.keyCode == 37) {
@@ -155,7 +156,7 @@ class Game {
                 let blockPlayFieldX = blockX + currentX
                 let blockPlayFieldY = blockY + currentY
                 if (blockPlayFieldY >= 0) {
-                    this.state.playField[blockPlayFieldX][blockPlayFieldY] = false
+                    this.state.playField[blockPlayFieldX][blockPlayFieldY] = true
                 }
             })
     }
@@ -215,6 +216,7 @@ class Game {
     }
 
     private move(direction: Direction) {
+        console.log(direction)
         if (this.canMove(direction)) {
             this.clearPiece()
 
