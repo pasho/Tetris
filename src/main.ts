@@ -94,6 +94,7 @@ class Game {
             }
             if (e.keyCode == 38) {
                 this.state.currentKey = 'up'
+                this.rotate()
                 e.preventDefault()
             }
             if (e.keyCode == 39) {
@@ -255,6 +256,29 @@ class Game {
                 this.initNextPiece()
             }
         }
+    }
+
+    private rotate(){
+        this.clearPiece()
+
+        let transformationMtx: Pos[][] = [
+            [[0, 2],[1, 1], [2, 0]],
+            [[-1,1], [0,0], [1,-1], [2, -2]],
+            [[-2, 0], [-1, -1], [0, -2]],
+            [[0,0], [-2, 2]]
+        ]
+
+        let rotated = this.state.currentPiece
+            .map(
+                ([row, col]) => {
+                    let [rowAdj, colAdj] = transformationMtx[row + 1][col + 1]
+                    return [row + rowAdj, col + colAdj] as Pos
+                }
+            )
+                
+        this.state.currentPiece = rotated
+
+        this.putPiece()
     }
 
     private tryClearRows(){
