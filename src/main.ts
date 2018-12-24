@@ -12,12 +12,32 @@ type Direction = 'left' | 'right' | 'down'
 
 const pieces: Piece[] = [
     [
-        [0, 0], [0, 1]
+        [0, -1], [0, 0], [0, 1], [0, 2]
     ],
     [
-        [0, 0],
-        [1, 0]
-    ]
+        [0, 0], [0, 1],
+        [1, 0], [1, 1]
+    ],
+    [
+        [0, -1], [0, 0], [0, 1],
+        [1, -1]
+    ],
+    [
+        [0, -1], [0, 0], [0, 1],
+                         [1, 1]
+    ],
+    [
+        [0, -1], [0, 0], [0, 1],
+                 [1, 0]
+    ],
+    [
+        [0, -1], [0, 0], 
+                 [1, 0], [1, 1]
+    ],
+    [
+                 [0, 0], [0, 1],
+        [1, -1], [1, 0]
+    ],
 ]
 
 interface State {
@@ -144,7 +164,9 @@ class Game {
         }
     }
 
-    private clearPiece() {
+    private showHidePiece(action: 'show' | 'hide'){
+        let fill = action == 'show'
+
         let [currentRow, currentCol] = this.state.currentPiecePosition
 
         this.state.currentPiece
@@ -152,22 +174,17 @@ class Game {
                 let blockPlayFieldRow = blockRow + currentRow
                 let blockPlayFieldCol = blockCol + currentCol
                 if(blockPlayFieldRow >= 0){
-                    this.state.playField[blockPlayFieldRow][blockPlayFieldCol] = false
+                    this.state.playField[blockPlayFieldRow][blockPlayFieldCol] = fill
                 }
             })
     }
 
-    private putPiece() {
-        let [currentRow, currentCol] = this.state.currentPiecePosition
+    private clearPiece() {
+        this.showHidePiece('hide')
+    }
 
-        this.state.currentPiece
-            .forEach(([blockRow, blockCol]) => {
-                let blockPlayFieldRow = blockRow + currentRow
-                let blockPlayFieldCol = blockCol + currentCol
-                if (blockPlayFieldRow >= 0) {
-                    this.state.playField[blockPlayFieldRow][blockPlayFieldCol] = true
-                }
-            })
+    private putPiece() {
+        this.showHidePiece('show')
     }
 
     private canMove(direction: Direction) {
