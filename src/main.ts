@@ -1,5 +1,3 @@
-//import * as _ from 'lodash'
-
 const blockSize = 25
 const playFieldSize = { height: 22, width: 10 }
 
