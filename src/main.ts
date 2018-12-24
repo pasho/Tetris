@@ -1,187 +1,291 @@
+//import * as _ from 'lodash'
 
+const blockSize = 25
+const playFieldSize = { height: 22, width: 10 }
 
-window.onload = () => {
-    let playField = document.getElementById('playField') as HTMLCanvasElement
+type Row = number
+type Col = number
+type Pos = [Row, Col]
+type Piece = Pos[]
 
-    playField.width = window.innerWidth
-    playField.height = window.innerHeight
+type Direction = 'left' | 'right' | 'down'
 
-    let blockSize = 25
-    let playFieldSize = { height: 22, width: 10 }
+const pieces: Piece[] = [
+    [
+        [0, -1], [0, 0], [0, 1], [0, 2]
+    ],
+    [
+        [0, 0], [0, 1],
+        [1, 0], [1, 1]
+    ],
+    [
+        [0, -1], [0, 0], [0, 1],
+        [1, -1]
+    ],
+    [
+        [0, -1], [0, 0], [0, 1],
+                         [1, 1]
+    ],
+    [
+        [0, -1], [0, 0], [0, 1],
+                 [1, 0]
+    ],
+    [
+        [0, -1], [0, 0], 
+                 [1, 0], [1, 1]
+    ],
+    [
+                 [0, 0], [0, 1],
+        [1, -1], [1, 0]
+    ],
+]
 
-    let playFieldState: boolean[][] = [];
+interface State {
+    playField: boolean[][]
+    currentKey?: 'left' | 'right' | 'up' | 'down'
+    currentPiece: Piece
+    currentPiecePosition: Pos
+    ticksCounter: number
+}
 
-    for(let row = 0; row < playFieldSize.height; row++){
-        playFieldState[row] = []
-        for(let col = 0; col < playFieldSize.width; col++){
-            playFieldState[row][col] = false            
+class Game {
+    private playField: HTMLCanvasElement
+    private state: State
+
+    constructor() {
+        //capture playfield
+        this.playField = document.getElementById('playField') as HTMLCanvasElement
+        this.playField.width = window.innerWidth
+        this.playField.height = window.innerHeight
+
+        //init state
+        this.state = Object.assign(
+            {
+                ticksCounter: 0
+            },
+            this.initPlayField(),
+            this.initPiece())
+    }
+
+    private initPlayField(){
+        let playField: boolean[][] = []
+        for(let row = 0; row < playFieldSize.height; row++){
+            playField[row] = []
+            for(let col = 0; col < playFieldSize.width; col++){
+                playField[row][col] = false;
+            }
+        }
+
+        return { playField }
+    }
+
+    private initPiece() {
+        return {
+            currentPiece: this.getNextPiece(),
+            currentPiecePosition: [-1, 4] as Pos,
         }
     }
 
-    function clear(){
-        let ctx = playField.getContext('2d')
+    public start() {
+        console.log('start')
+        //subscribe to keys
+        window.onkeydown = (e) => {
+            if (e.keyCode == 37) {
+                this.state.currentKey = 'left'
+                e.preventDefault()
+            }
+            if (e.keyCode == 38) {
+                this.state.currentKey = 'up'
+                e.preventDefault()
+            }
+            if (e.keyCode == 39) {
+                this.state.currentKey = 'right'
+                e.preventDefault()
+            }
+            if (e.keyCode == 40) {
+                this.state.currentKey = 'down'
+                e.preventDefault()
+            }
+        }
+
+        window.onkeyup = () => {
+            this.state.currentKey = undefined
+        }
+
+        window.setInterval(
+            () => {
+                if (this.state.currentKey && this.state.currentPiecePosition[0] != -1) {
+                    if (this.state.currentKey == "left") {
+                        this.move("left")
+                    }
+                    if (this.state.currentKey == "right") {
+                        this.move('right')
+                    }
+                }
+                if (this.state.ticksCounter % 10 == 0 || this.state.currentKey == 'down') {
+                    this.move('down')
+                }
+                this.state.ticksCounter++
+
+                this.clear()
+                this.render()
+            },
+            100
+        )
+    }
+
+    private getNextPiece(): Piece {
+        let pieceIndex = Math.floor(Math.random() * pieces.length)
+        return pieces[pieceIndex]
+    }
+
+    private clear() {
+        let ctx = this.playField.getContext('2d')
         ctx.clearRect(0, 0, playFieldSize.width * blockSize + 1, playFieldSize.height * blockSize + 1)
     }
 
-    function render(){
-        let ctx = playField.getContext('2d')
+    private render() {
+        let ctx = this.playField.getContext('2d')
+
+        //draw playfield
         ctx.moveTo(0, 0)
         ctx.lineTo(0, playFieldSize.height * blockSize + 1)
         ctx.lineTo(playFieldSize.width * blockSize + 1, playFieldSize.height * blockSize + 1)
-        ctx.lineTo(playFieldSize.width * blockSize + 1, 0)           
-        ctx.stroke()            
+        ctx.lineTo(playFieldSize.width * blockSize + 1, 0)
+        ctx.stroke()
 
-        //render state        
-        for(let row = 0; row < playFieldSize.height; row++){                        
-            for(let col = 0; col < playFieldSize.width; col++){
-                if(playFieldState[row][col]){                                   
-                    ctx.fillRect(1 + col * blockSize, row * blockSize, blockSize, blockSize)                                                          
+        //render blocks
+        for (let row = 0; row < playFieldSize.height; row++) {
+            for (let col = 0; col < playFieldSize.width; col++) {
+                if (this.state.playField[row][col]) {
+                    ctx.fillRect(1 + col * blockSize, row * blockSize, blockSize, blockSize)
                 }
             }
         }
     }
 
-    let currentKey: 'left' | 'right' | 'up' | 'down' | undefined = undefined
+    private showHidePiece(action: 'show' | 'hide'){
+        let fill = action == 'show'
 
-    window.onkeydown = (e) => {
-        if(e.keyCode == 37) {
-            currentKey = 'left'
-            e.preventDefault()
-        }
-        if(e.keyCode == 38) {
-            currentKey = 'up'
-            e.preventDefault()
-        }
-        if(e.keyCode == 39) {
-            currentKey = 'right'
-            e.preventDefault()
-        }
-        if(e.keyCode == 40) {
-            currentKey = 'down'
-            e.preventDefault()
-        }        
-    }
-    window.onkeyup = () => {
-        currentKey = undefined
-    }
+        let [currentRow, currentCol] = this.state.currentPiecePosition
 
-    const pieces = [
-        [
-            [true, true]
-        ],
-        [
-            [true],
-            [true]
-        ]
-    ]
-
-    function getNextPiece(){
-        let pieceIndex = Math.floor(Math.random() * pieces.length)        
-        return pieces[pieceIndex]        
-    }
-
-    let currentPiece = getNextPiece()
-    let currentPieceHeight = currentPiece.length
-    let currentPieceWidth = currentPiece.map(cols => cols.length).reduce((a, b) => a > b ? a : b)
-    let currentPieceCol = Math.floor((playFieldSize.width - currentPieceWidth) / 2)    
-    let currentPieceRow = -1            
-
-    function clearPiece(){
-        for(let rowOffset = 0; rowOffset < currentPieceHeight; rowOffset++){
-            for(let colOffset = 0; colOffset < currentPieceWidth; colOffset++){
-                let row = currentPieceRow - rowOffset
-                if(row >= 0){
-                    playFieldState[row][currentPieceCol + colOffset] = false
+        this.state.currentPiece
+            .forEach(([blockRow, blockCol]) => {
+                let blockPlayFieldRow = blockRow + currentRow
+                let blockPlayFieldCol = blockCol + currentCol
+                if(blockPlayFieldRow >= 0){
+                    this.state.playField[blockPlayFieldRow][blockPlayFieldCol] = fill
                 }
+            })
+    }
+
+    private clearPiece() {
+        this.showHidePiece('hide')
+    }
+
+    private putPiece() {
+        this.showHidePiece('show')
+    }
+
+    private canMove(direction: Direction) {
+        let [currentRow, currentCol] = this.state.currentPiecePosition
+
+        let currentPositions = this.state.currentPiece
+            .map(([blockRow, blockCol]): Pos => [blockRow + currentRow, blockCol + currentCol])
+
+        let movedPositions = currentPositions
+            .map(position => this.getMovedPosition(position, direction))
+
+        let newPositionsOnly = movedPositions
+            .filter(([movedRow, movedCol]) => {
+                let doesntOverlapsWithCurrent = currentPositions
+                    .find(
+                        ([currentRow, currentCol]) =>
+                            currentRow == movedRow && currentCol == movedCol
+                    ) === undefined
+
+                return doesntOverlapsWithCurrent
+            })
+
+        let isOutOfBounds = newPositionsOnly.find(
+            ([row, col]) =>
+                col < 0 // too much left
+                || col >= playFieldSize.width // too much right
+                || row >= playFieldSize.height // through the bottom
+        ) !== undefined
+
+        if (isOutOfBounds) {
+            console.log('out of bounds')
+            return false
+        }
+
+        let isOverlapping = newPositionsOnly
+            .find(
+                ([row, col]) => this.state.playField[row][col]
+            ) !== undefined
+
+        if (isOverlapping) {
+            return false
+        }
+
+        return true
+    }
+
+    private getMovedPosition([row, col]: Pos, direction: Direction): Pos {
+        switch (direction) {
+            case 'left':
+                return [row, col - 1]
+            case 'right':
+                return [row, col + 1]
+            case 'down':
+                return [row + 1, col]
+        }
+    }
+
+    private move(direction: Direction) {
+        console.log(direction)
+        if (this.canMove(direction)) {
+            this.clearPiece()
+
+            this.state.currentPiecePosition = this.getMovedPosition(this.state.currentPiecePosition, direction)
+
+            this.putPiece()
+        }
+        else {
+            if (direction == 'down') {
+                this.tryClearRows()
+                this.initNextPiece()
             }
         }
     }
 
-    function putPiece(){
-        for(let rowOffset = 0; rowOffset < currentPieceHeight; rowOffset++){           
-            for(let colOffset = 0; colOffset < currentPieceWidth; colOffset++){                     
-                let row = currentPieceRow - rowOffset                    
-                if(row >= 0){                        
-                    playFieldState[row][currentPieceCol + colOffset] = true
+    private tryClearRows(){
+        let playFieldAfterFilledRowsRemoved = this.state.playField
+            .filter(row => row.findIndex(filled => filled == false) != -1)
+
+        let removedRowsCount = playFieldSize.height - playFieldAfterFilledRowsRemoved.length
+        if (removedRowsCount > 0) {
+            let blankRows = []
+            for (let row = 0; row < removedRowsCount; row++) {
+                blankRows[row] = []
+                for (let col = 0; col < playFieldSize.width; col++) {
+                    playFieldAfterFilledRowsRemoved[row][col] = false
                 }
-            }       
+            }
+            this.state.playField = blankRows.concat(playFieldAfterFilledRowsRemoved)
         }
     }
 
-    function moveDown(){        
-        //can move?       
-        let notBottom = currentPieceRow != playFieldSize.height - 1        
-        let nothingBelow = notBottom && !currentPiece[currentPiece.length - 1]            
-            .map((_, offset) => playFieldState[currentPieceRow + 1][currentPieceCol + offset])
-            .reduce((a, b) => a || b)
-
-        if(notBottom && nothingBelow){
-            //is visible?
-            if(currentPieceRow >= 0){
-                clearPiece()
-            }
-
-            currentPieceRow++       
-
-            putPiece()
-        }
-        else{
-            let afterRowsCleared = playFieldState.filter(row => row.findIndex(x => x == false) != -1)
-            let removedRows = playFieldSize.height - afterRowsCleared.length
-            if(removedRows > 0){                  
-                let blankRows = []           
-                for(let row = 0; row < removedRows; row++){
-                    blankRows[row] = []
-                    for(let col = 0; col < playFieldSize.width; col++){
-                        afterRowsCleared[row][col] = false                        
-                    }
-                }
-                playFieldState = blankRows.concat(afterRowsCleared)
-            }
-
-            currentPiece = getNextPiece()
-            currentPieceHeight = currentPiece.length
-            currentPieceWidth = currentPiece.map(cols => cols.length).reduce((a, b) => a > b ? a : b)
-            currentPieceCol = Math.floor((playFieldSize.width - currentPieceWidth) / 2)
-            currentPieceRow = -1           
-        }
-    }    
-
-    function moveSide(side: 'left' | 'right'){
-        let sideCol = side == 'left' 
-            ? Math.max(0, currentPieceCol - 1)
-            : Math.min(playFieldSize.width - 1, currentPieceCol + currentPieceWidth)
-            
-        if(!playFieldState[currentPieceRow][sideCol]){            
-            clearPiece()
-            currentPieceCol = sideCol            
-            putPiece()
-        }
+    private initNextPiece(){
+        this.state = Object.assign(
+            this.state,
+            this.initPiece()
+        )
     }
+}
 
-    render()
-
-    let ticksCounter = 0
-
-    window.setInterval(
-        () => {
-            if(currentKey && currentPieceRow != -1){
-                if(currentKey == "left"){
-                    moveSide("left")
-                }
-                if(currentKey == "right"){
-                    moveSide('right')
-                }
-            }
-            if(ticksCounter % 10 == 0 || currentKey == 'down'){
-                moveDown()
-            }
-            ticksCounter++
-
-            clear()
-            render()
-        },
-        100
-    )
+window.onload = () => {
+    let game = new Game()
+    game.start()
 }
 
