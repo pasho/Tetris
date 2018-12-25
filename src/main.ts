@@ -186,16 +186,30 @@ class Game {
         this.showHidePiece('show')
     }
 
-    private canMove(direction: Direction) {
-        let [currentRow, currentCol] = this.state.currentPiecePosition
+    private getPostions(piece: Piece, [row, col]: Pos){
+        let positions = piece
+            .map(([blockRow, blockCol]): Pos => [blockRow + row, blockCol + col])
+        
+        return positions
+    }
 
-        let currentPositions = this.state.currentPiece
-            .map(([blockRow, blockCol]): Pos => [blockRow + currentRow, blockCol + currentCol])
+    private getCurrentPositions(){
+        return this.getPostions(this.state.currentPiece, this.state.currentPiecePosition)
+    }
+
+    private canMove(direction: Direction) {
+        let currentPositions = this.getCurrentPositions()
 
         let movedPositions = currentPositions
             .map(position => this.getMovedPosition(position, direction))
 
-        let newPositionsOnly = movedPositions
+        return this.validate(movedPositions)
+    }
+
+    private validate(transformedPositions: Pos[]){
+        let currentPositions = this.getCurrentPositions()
+
+        let newPositionsOnly = transformedPositions
             .filter(([movedRow, movedCol]) => {
                 let doesntOverlapsWithCurrent = currentPositions
                     .find(
@@ -214,7 +228,6 @@ class Game {
         ) !== undefined
 
         if (isOutOfBounds) {
-            console.log('out of bounds')
             return false
         }
 
@@ -259,8 +272,6 @@ class Game {
     }
 
     private rotate(){
-        this.clearPiece()
-
         let transformationMtx: Pos[][] = [
             [[0, 2],[1, 1], [2, 0]],
             [[-1,1], [0,0], [1,-1], [2, -2]],
@@ -268,17 +279,23 @@ class Game {
             [[0,0], [-2, 2]]
         ]
 
-        let rotated = this.state.currentPiece
+        let rotatedPiece = this.state.currentPiece
             .map(
                 ([row, col]) => {
                     let [rowAdj, colAdj] = transformationMtx[row + 1][col + 1]
                     return [row + rowAdj, col + colAdj] as Pos
                 }
             )
-                
-        this.state.currentPiece = rotated
 
-        this.putPiece()
+        let rotatedPositions = this.getPostions(rotatedPiece, this.state.currentPiecePosition)
+
+        if(this.validate(rotatedPositions)){
+            this.clearPiece()
+
+            this.state.currentPiece = rotatedPiece
+
+            this.putPiece()
+        }
     }
 
     private tryClearRows(){
