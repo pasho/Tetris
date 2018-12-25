@@ -298,33 +298,6 @@ class Game {
         }
     }
 
-    // private rotate(){
-    //     let transformationMtx: Pos[][] = [
-    //         [[0, 2],[1, 1], [2, 0]],
-    //         [[-1,1], [0,0], [1,-1], [2, -2]],
-    //         [[-2, 0], [-1, -1], [0, -2]],
-    //         [[0,0], [-2, 2]]
-    //     ]
-
-    //     let rotatedPiece = this.state.currentPiece
-    //         .map(
-    //             ([row, col]) => {
-    //                 let [rowAdj, colAdj] = transformationMtx[row + 1][col + 1]
-    //                 return [row + rowAdj, col + colAdj] as Pos
-    //             }
-    //         )
-
-    //     let rotatedPositions = this.getPostions(rotatedPiece, this.state.currentPiecePosition)
-
-    //     if(this.validate(rotatedPositions)){
-    //         this.clearPiece()
-
-    //         this.state.currentPiece = rotatedPiece
-
-    //         this.putPiece()
-    //     }
-    // }
-
     private tryClearRows(){
         let playFieldAfterFilledRowsRemoved = this.state.playField
             .filter(row => row.findIndex(filled => filled == false) != -1)
