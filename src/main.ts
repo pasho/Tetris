@@ -59,22 +59,17 @@ class Game {
         //init state
         this.state = Object.assign(
             {
-                ticksCounter: 0
+                ticksCounter: 0,
+                playField: this.initPlayField(playFieldSize)
             },
-            this.initPlayField(),
             this.initPiece())
     }
 
-    private initPlayField(){
-        let playField: boolean[][] = []
-        for(let row = 0; row < playFieldSize.height; row++){
-            playField[row] = []
-            for(let col = 0; col < playFieldSize.width; col++){
-                playField[row][col] = false;
-            }
-        }
-
-        return { playField }
+    private initPlayField(size: {height: number, width: number}){
+        return Array.from(
+            new Array(size.height),
+            row => new Array(size.width).fill(false)
+        )
     }
 
     private initPiece() {
@@ -154,13 +149,19 @@ class Game {
         ctx.stroke()
 
         //render blocks
-        for (let row = 0; row < playFieldSize.height; row++) {
-            for (let col = 0; col < playFieldSize.width; col++) {
-                if (this.state.playField[row][col]) {
-                    ctx.fillRect(1 + col * blockSize, row * blockSize, blockSize, blockSize)
+        this.state.playField.forEach(
+            (rowCols, rowIndex) => rowCols.forEach(
+                (filled, colIndex) => {
+                    if(filled){
+                        ctx.fillRect(
+                            1 + colIndex * blockSize, 
+                            rowIndex * blockSize, 
+                            blockSize, 
+                            blockSize)
+                    }
                 }
-            }
-        }
+            )
+        )
     }
 
     private showHidePiece(action: 'show' | 'hide'){
@@ -304,13 +305,12 @@ class Game {
 
         let removedRowsCount = playFieldSize.height - playFieldAfterFilledRowsRemoved.length
         if (removedRowsCount > 0) {
-            let blankRows = []
-            for (let row = 0; row < removedRowsCount; row++) {
-                blankRows[row] = []
-                for (let col = 0; col < playFieldSize.width; col++) {
-                    playFieldAfterFilledRowsRemoved[row][col] = false
+            let blankRows = this.initPlayField(
+                {
+                    height: removedRowsCount,
+                    width: playFieldSize.width
                 }
-            }
+            )
             this.state.playField = blankRows.concat(playFieldAfterFilledRowsRemoved)
         }
     }
