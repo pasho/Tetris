@@ -1,4 +1,4 @@
 # Tetris
 HTML Canvas, TypeScript Tetris
 
-Experimental app to learn canvas API.
+Experimental app to learn HTML Canvas API.
